@@ -15,6 +15,7 @@ argparser.add_argument("--output", "-o")
 argparser.add_argument("--name", "-n")
 args = argparser.parse_args()
 
+
 def get_pass(name: str):
     out = subprocess.run(["pass", "show", name], capture_output=True, text=True).stdout
     return out.rstrip("\n")
@@ -37,10 +38,15 @@ async def main():
 
     async for item in client.iter_messages(args.name):
         counter += 1
-        user = item.from_id.user_id if item.from_id is not None and hasattr(item.from_id, "user_id") else '-'
-        line= f"{counter:03} {item.date} {user} {item.message}".replace("\n", "")[:100]
+        user = (
+            item.from_id.user_id
+            if item.from_id is not None and hasattr(item.from_id, "user_id")
+            else "-"
+        )
+        line = f"{counter:03} {item.date} {user} {item.message}".replace("\n", "")[:100]
         print(line)
         out_file.write("{}\n".format(json_dump(item.to_dict())))
+
 
 with client:
     client.loop.run_until_complete(main())
