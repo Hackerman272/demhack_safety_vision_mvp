@@ -26,7 +26,7 @@ class FromDict:
 
 
 @dataclass
-class ExportFromId(FromDict):
+class ExportFromId:
     user_id: str
 
 
@@ -48,9 +48,9 @@ def main():
             continue
         from_id = data.get("from_id")
         if from_id is not None:
-            user_id = from_id.get("uset_id")
+            user_id = from_id.get("user_id")
             if user_id is not None:
-                data["from_id"] = ExportFromId.from_dict(from_id["user_id"])
+                data["from_id"] = ExportFromId(user_id)
 
         item = ExportItem.from_dict(data)
         user = (
