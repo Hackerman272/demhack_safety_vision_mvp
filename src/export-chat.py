@@ -6,7 +6,7 @@ import subprocess
 import telethon
 import argparse
 
-from src.module.utils import json_load, json_dump
+from src.module.utils import json_dump
 
 root_dir = pathlib.Path(__file__).parents[1]
 
