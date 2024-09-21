@@ -1,16 +1,23 @@
+import argparse
 import json
+import pathlib
 import re
 from collections import Counter
 from collections import defaultdict
-from datetime import datetime
+import datetime
 from operator import itemgetter
+from typing import Iterator
 
 import matplotlib.pyplot as plt
 import numpy as np
 import spacy
 from nltk.stem.snowball import SnowballStemmer
 
-file_path = "result.json"
+from module.export import get_items, get_user, ExportItem
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--input", "-i")
+args = argparser.parse_args()
 
 nlp = spacy.load("ru_core_news_sm")
 stemmer = SnowballStemmer("russian")
@@ -24,7 +31,7 @@ def read_json_file(file_path):
 
 def format_date(date_string):
     try:
-        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S")
+        return datetime.datetime.fromisoformat(date_string)
     except ValueError:
         return "Invalid Date"
 
@@ -42,20 +49,19 @@ def parse_message_content(message_content):
         return message_content.replace("\n", " ").replace("  ", " ") or ""
 
 
-def clean_messages(messages):
+def clean_messages(items: Iterator[ExportItem]):
     output = []
-    for index, message in enumerate(messages):
-        if message.get("type") == "message":
-            text_content = parse_message_content(message.get("text", ""))
-            if text_content:
-                date = format_date(message.get("date", "Invalid Date"))
-                message_info = {
-                    "id": message.get("id", ""),
-                    "date": date,
-                    "actor": message.get("actor") or message.get("from", "Unknown"),
-                    "content": text_content,
-                }
-                output.append(message_info)
+    for item in items:
+        if not item.message:
+            continue
+        date = format_date(item.date)
+        item_info = {
+            "id": item.id,
+            "date": date,
+            "actor": get_user(item),
+            "content": item.message,
+        }
+        output.append(item_info)
     return output
 
 
@@ -191,14 +197,19 @@ def analyze_word_freq(messages, method="lemm", exclude_stopwords=True):
         print(f"{word}: {count}")
 
 
-json_data = read_json_file(file_path)
-clean_messages = clean_messages(json_data.get("messages", []))
-aggregated_messages = aggregate_messages(clean_messages)
+def main():
+    messages = get_items(pathlib.Path(args.input))
 
-actor, msgs = aggregated_messages[0]
-# print(msgs)
-# print_messages_in_batches(actor, msgs)
+    message_info = clean_messages(messages)
+    aggregated_messages = aggregate_messages(message_info)
 
-analyze_msg_freq(msgs)
-analyze_word_freq(msgs, method="lemm")
-analyze_word_freq(msgs, method="stem")
+    actor, msgs = aggregated_messages[0]
+    # print_messages_in_batches(actor, msgs)
+
+    analyze_msg_freq(msgs)
+    analyze_word_freq(msgs, method="lemm")
+    analyze_word_freq(msgs, method="stem")
+
+
+if __name__ == "__main__":
+    main()
