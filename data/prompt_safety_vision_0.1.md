@@ -1,6 +1,6 @@
 **Objective:**
 Analyze a set of Telegram messages to detect suspicious activity and build a profile for each user based on their behavior in the chat. Return structured information identifying any suspicious behavior, potential bots, or advertising activities, and provide a profile summary for each user in the chunk of messages.
-
+2
 **Instructions:**
 1. **Suspicious Activity**:
     - Identify potential bots based on repetitive or irrelevant messages.
@@ -21,9 +21,9 @@ Analyze a set of Telegram messages to detect suspicious activity and build a pro
 Chunk of messages in this format:
 ```
 [
-  {"id": 607339, "from": "Oleg T.", "text": "...", "media_type": "video", "date": "2024-09-01T12:03:46"},
-  {"id": 607341, "from": "Ёж", "text": "как ты ездишь без зеркал...", "date": "2024-09-01T19:47:12"},
-  {"id": 607343, "from": "Sergio", "text": "Нет, по закону это косяк.", "date": "2024-09-01T20:09:06"},
+  {"from": "Oleg T.", "text": "...", "media_type": "video", "date": "2024-09-01T12:03:46"},
+  {"from": "Ёж", "text": "как ты ездишь без зеркал...", "date": "2024-09-01T19:47:12"},
+  {"from": "Sergio", "text": "Нет, по закону это косяк.", "date": "2024-09-01T20:09:06"},
   ...
 ]
 ```

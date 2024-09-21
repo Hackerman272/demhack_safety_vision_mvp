@@ -1,8 +1,9 @@
+import datetime
 import inspect
 from dataclasses import dataclass
 from typing import Optional
 
-from module.utils import json_load
+from module.utils import json_load, reverse_readline
 
 
 @dataclass
@@ -31,7 +32,7 @@ class ExportItem(FromDict):
         "from": "from_",
     }
     id: int
-    date: str
+    date: datetime.datetime
     message: str
     from_id: ExportFromId
     actor: Optional[str] = None
@@ -49,10 +50,10 @@ def get_user(item: ExportItem):
 
 
 def get_items(data_path):
-    data = data_path.open()
-
-    for line in data:
+    for line in reverse_readline(data_path):
         data = json_load(line)
+
+        data["date"] = datetime.datetime.fromisoformat(data["date"])
 
         if "message" not in data:
             continue
