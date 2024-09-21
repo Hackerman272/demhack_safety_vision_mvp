@@ -23,7 +23,7 @@ Chunk of messages in this format:
 MESSAGES
 ```
 
-Return the analysis in the following format:
+**Return the analysis in the following format:**
 ```
 **Suspicious Activity:**
 - [Message ID]: [Reason for suspicion (e.g., bot, spam, irrelevant message)].

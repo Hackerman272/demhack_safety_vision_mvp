@@ -49,7 +49,7 @@ def get_messages(data_path: pathlib.Path, limit=10):
 
 def test_prompt_1():
     data_path = pathlib.Path(args.input)
-    system_prompt = pathlib.Path(config.root_dir / "data/prompt_safety_vision_0.1.md").read_text()
+    system_prompt = pathlib.Path(config.root_dir / "data/prompts/safety_vision_0.1.md").read_text()
     messages = "\n".join(get_messages(data_path, 300))
     prompt = system_prompt.replace("MESSAGES", messages)
 
