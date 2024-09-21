@@ -25,14 +25,14 @@ config = get_config([root_dir / "config/global.yaml", root_dir / "local.yaml"], 
 
 def filter_items(items):
     for item in items:
+        if item.from_id.from_type == "PeerChannel":
+            continue
         if not item.message:
             continue
         yield item
 
 
-def get_messages(limit=10):
-    data_path = pathlib.Path(args.input)
-
+def get_messages(data_path: pathlib.Path, limit=10):
     yield "["
     for index, item in enumerate(filter_items(get_items(data_path))):
         line_item = {
@@ -47,15 +47,18 @@ def get_messages(limit=10):
     yield "]"
 
 
-def main():
+def test_prompt_1():
+    data_path = pathlib.Path(args.input)
     system_prompt = pathlib.Path(config.root_dir / "data/prompt_safety_vision_0.1.md").read_text()
-    messages = "\n".join(get_messages(300))
+    messages = "\n".join(get_messages(data_path, 300))
     prompt = system_prompt.replace("MESSAGES", messages)
 
     now = datetime.datetime.now()
     print(f"⏰ {now}")
 
-    log_file_path = pathlib.Path(config.root_dir / f"tmp/openai-gpt4-log_{now:%Y-%m-%d-%H-%M-%S}.txt")
+    name = data_path.stem
+
+    log_file_path = pathlib.Path(config.root_dir / f"tmp/gemeni_{name}_{now:%Y-%m-%d-%H-%M-%S}.txt")
     log_file = log_file_path.open("w")
 
     agent = ConversableAgent(
@@ -78,6 +81,19 @@ def main():
     reply = agent.generate_reply(messages=[{"content": prompt, "role": "user"}])
     print(reply["content"])
     log_file.write(f"{reply['content']}\n")
+
+    print("ℹ️ Saved to:", log_file_path)
+
+
+def research_01():
+    data_path = pathlib.Path(args.input)
+    for index, item in enumerate(filter_items(get_items(data_path))):
+        print(item.date, get_user(item), item.message)
+        break
+
+
+def main():
+    test_prompt_1()
 
 
 if __name__ == "__main__":

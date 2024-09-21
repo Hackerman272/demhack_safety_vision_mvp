@@ -28,6 +28,15 @@ wheels = [
 ]
 
 [[package]]
+name = "asyncstdlib"
+version = "3.12.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/31/b369d4185a6015d7d655d044b95523b2cca96a33dc6afa08bb9d25eff0f6/asyncstdlib-3.12.5.tar.gz", hash = "sha256:7eb0025f6acb59e46743458570712fe9700dcc7b370b6929daf07bcc1ccc27db", size = 49063 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/66/b6/ce5f8bd81060dad591dd15784066ad959aa5797f3b8bbf37ad8592a7198c/asyncstdlib-3.12.5-py3-none-any.whl", hash = "sha256:277084c59caf8148c9cd83c7425f37aba7f43078645129ec6918d0f1a0adc95a", size = 43804 },
+]
+
+[[package]]
 name = "blis"
 version = "0.7.11"
 source = { registry = "https://pypi.org/simple" }
@@ -203,6 +212,7 @@ name = "demhack-safety-vision-mvp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "asyncstdlib" },
     { name = "flaml" },
     { name = "matplotlib" },
     { name = "mergedeep" },
@@ -218,6 +228,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "asyncstdlib", specifier = ">=3.12.5" },
     { name = "flaml", specifier = "==2.2.0" },
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "mergedeep", specifier = ">=1.3.4" },

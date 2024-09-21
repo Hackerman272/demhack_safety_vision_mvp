@@ -3,6 +3,7 @@ import datetime
 import pathlib
 
 import telethon
+from asyncstdlib import enumerate
 
 from module.utils import get_pass, json_dump
 
@@ -27,13 +28,13 @@ async def main():
     print(f"⏰ {now}")
     out_file_path = pathlib.Path(args.output)
     out_file = out_file_path.open("w")
-    counter = 0
 
-    async for item in client.iter_messages(args.name):
-        counter += 1
-        user = item.from_id.user_id if item.from_id is not None and hasattr(item.from_id, "user_id") else "-"
-        line = f"{counter:03} {item.date} {user} {item.message}".replace("\n", "")[:100]
-        print(line)
+    async for index, item in enumerate(client.iter_messages(args.name)):
+        # user = item.from_id.user_id if item.from_id is not None and hasattr(item.from_id, "user_id") else "-"
+        # line = f"{counter:03} {item.date} {user} {item.message}".replace("\n", "")[:100]
+        # print(line)
+        if index % 100 == 0:
+            print(index)
         out_file.write("{}\n".format(json_dump(item.to_dict())))
 
 
