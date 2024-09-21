@@ -1,9 +1,11 @@
 import argparse
+import datetime
 import logging
 import pathlib
 from signal import SIG_DFL, SIGPIPE, signal
 
 from autogen import AssistantAgent, ConversableAgent, UserProxyAgent
+from openai import api_type
 
 from module.config import get_config
 from module.export import get_items, get_user
@@ -48,15 +50,24 @@ def get_messages(limit=10):
 
 def main():
     system_prompt = pathlib.Path(config.root_dir / "data/prompt_safety_vision_0.1.md").read_text()
-    messages = "\n".join(get_messages(100))
+    messages = "\n".join(get_messages(300))
+    prompt = system_prompt.replace("MESSAGES", messages)
 
-    log_file_path = pathlib.Path(config.root_dir / "tmp/openai-gpt4-log.txt")
+    now = datetime.datetime.now()
+    print(f"⏰ {now}")
+
+    log_file_path = pathlib.Path(config.root_dir / f"tmp/openai-gpt4-log_{now:%Y-%m-%d-%H-%M-%S}.txt")
     log_file = log_file_path.open("w")
 
     agent = ConversableAgent(
         "chatbot",
-        llm_config={"config_list": [dict(model="gpt-4", api_key=get_pass("openai-api-key"))]},
-        system_message=system_prompt,
+        llm_config={
+            "config_list": [
+                # dict(model="gpt-4", api_key=get_pass("openai-api-key")),
+                dict(model="gemini-pro", api_type="google", api_key=get_pass("gemini-api-key")),
+            ]
+        },
+        # system_message=system_prompt,
         code_execution_config=False,
         function_map=None,
         human_input_mode="NEVER",
@@ -65,9 +76,9 @@ def main():
     print(messages)
     log_file.write(f"{messages}\n\n")
 
-    reply = agent.generate_reply(messages=[{"content": messages, "role": "user"}])
-    print(reply)
-    log_file.write(f"{reply}\n")
+    reply = agent.generate_reply(messages=[{"content": prompt, "role": "user"}])
+    print(reply["content"])
+    log_file.write(f"{reply['content']}\n")
 
 
 if __name__ == "__main__":

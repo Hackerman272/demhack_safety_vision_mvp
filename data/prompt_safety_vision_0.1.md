@@ -20,12 +20,7 @@ Analyze a set of Telegram messages to detect suspicious activity and build a pro
 **Input:**
 Chunk of messages in this format:
 ```
-[
-  {"from": "Oleg T.", "text": "...", "media_type": "video", "date": "2024-09-01T12:03:46"},
-  {"from": "Ёж", "text": "как ты ездишь без зеркал...", "date": "2024-09-01T19:47:12"},
-  {"from": "Sergio", "text": "Нет, по закону это косяк.", "date": "2024-09-01T20:09:06"},
-  ...
-]
+MESSAGES
 ```
 
 Return the analysis in the following format:
