@@ -4,8 +4,7 @@ import logging
 import pathlib
 from signal import SIG_DFL, SIGPIPE, signal
 
-from autogen import AssistantAgent, ConversableAgent, UserProxyAgent
-from openai import api_type
+from autogen import ConversableAgent
 
 from module.config import get_config
 from module.export import get_items, get_user
