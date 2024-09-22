@@ -183,7 +183,12 @@ def get_agent(name: str):
 
 
 def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_chunk: list[MessageChunk]):
+    prompt_template_path = pathlib.Path(config.root_dir / config.prompt.template)
+    # prompt = prompt_template_path.read_text().replace("MESSAGES", yaml_dump(messages_chunk))
+
     log(log_file, "---")
+    # log(log_file, f"date: {now}")
+    # log(log_file, f"template: {prompt_template_path.stem}")
     log(log_file, "messages:")
     log(log_file, f"  count: {len(messages_chunk)}")
     log(log_file, f"  from: {messages_chunk[0].date}")
