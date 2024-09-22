@@ -1,6 +1,6 @@
 
 prompt:
-  template: data/prompts/safety_vision_0.2.md
+  template: data/prompts/spam_0.1.md
   messages:
     max_length: 500
     count_min: 100

@@ -2,7 +2,8 @@ import argparse
 import datetime
 import logging
 import pathlib
-from dataclasses import asdict, dataclass
+import re
+from dataclasses import dataclass
 from signal import SIG_DFL, SIGPIPE, signal
 from typing import Generator, TextIO
 
@@ -11,7 +12,7 @@ from pytimeparse.timeparse import timeparse
 
 from module.config import get_config
 from module.export import get_items, get_user
-from module.utils import get_pass, indent, json_dump, yaml_dump
+from module.utils import get_pass, indent, yaml_dump
 
 signal(SIGPIPE, SIG_DFL)
 
@@ -111,7 +112,12 @@ def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_ch
     reply = agent.generate_reply(messages=[{"content": prompt, "role": "user"}])
     response = reply["content"]
 
-    log(log_file, f"response: |-\n{indent(response)}")
+    re_yaml = re.compile(r"^\s*```(yaml)?\s*", re.MULTILINE)
+    response = re_yaml.sub("", response)
+    re_user_id = re.compile(r"\[(\d+)]", re.MULTILINE)
+    response = re_user_id.sub(r"\1", response)
+
+    log(log_file, f"response:\n{indent(response, 2)}")
 
 
 def process():
