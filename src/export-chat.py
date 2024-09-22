@@ -23,19 +23,20 @@ api_hash = get_pass("tg-api-hash")
 client = telethon.TelegramClient(session_file, api_id, api_hash)
 
 
-async def main():
+async def export():
     now = datetime.datetime.now()
     print(f"⏰ {now}")
     out_file_path = pathlib.Path(args.output)
     out_file = out_file_path.open("w")
 
     async for index, item in enumerate(client.iter_messages(args.name)):
-        # user = item.from_id.user_id if item.from_id is not None and hasattr(item.from_id, "user_id") else "-"
-        # line = f"{counter:03} {item.date} {user} {item.message}".replace("\n", "")[:100]
-        # print(line)
         if index % 100 == 0:
             print(index)
         out_file.write("{}\n".format(json_dump(item.to_dict())))
+
+
+async def main():
+    await export()
 
 
 with client:

@@ -2,4 +2,5 @@
 .cache/
 tmp/
 *.session
+*.session-journal
 __init__.py

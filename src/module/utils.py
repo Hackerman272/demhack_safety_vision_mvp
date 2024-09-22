@@ -95,3 +95,7 @@ def reverse_readline(filename, buf_size=8192):
 def get_pass(name: str) -> str:
     out = subprocess.run(["pass", "show", name], capture_output=True, text=True).stdout
     return str(out.rstrip("\n"))
+
+
+def indent(text: str, spaces: int = 4):
+    return "\n".join(" " * spaces + line for line in text.splitlines())
