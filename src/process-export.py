@@ -121,43 +121,13 @@ def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk],
 def get_agent(name: str):
     config_list = {
         "gpt-4": dict(model="gpt-4", api_key=get_pass("openai-api-key")),
-        "gemini-pro": dict(
-            model="gemini-pro",
-            api_type="google",
-            api_key=get_pass("gemini-api-key"),
-            functions=[
-                dict(
-                    name="get_grade",
-                    description="""
-                        ## Objective
-                        Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).
-                    """,
-                    parameters=dict(
-                        type="object",
-                        properties=dict(
-                            grade=dict(
-                                type="string",
-                                description="""
-                                    Evaluate the entire conversation for unusual activity and categorize it as:
-                                    **Normal**: Conversation is in line with the overall subject and patterns.
-                                    **Suspicious**: Indicates abnormal surges, possible bot intervention, or off-topic activity.
-                                """,
-                            )
-                        ),
-                        require=["grade"],
-                    ),
-                ),
-            ],
-            function_call={"name": "get_grade"},
-        ),
+        "gemini-pro": dict(model="gemini-pro", api_type="google", api_key=get_pass("gemini-api-key")),
     }
     return ConversableAgent(
         "chatbot",
         llm_config={"config_list": [config_list[name]]},
-        # system_message="""
-        #     Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).
-        # """,
-        # function_map={"get_grade": "get_grade"},
+        # system_message="",
+        function_map=None,
         code_execution_config=False,
         human_input_mode="NEVER",
     )
