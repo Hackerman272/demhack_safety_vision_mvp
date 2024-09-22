@@ -53,42 +53,40 @@ class MessageChunk:
     date: str
 
 
-def ask_gpt(str_content: str):
+def ask_gpt(str_message: str):
     openai.api_key = get_pass("OPENAI_API_KEY")
     functions = [
-        dict(
-            name="get_grade",
-            description="""
-                ## Objective
-                Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).
-            """,
-            parameters=dict(
-                type="object",
-                properties=dict(
-                    grade=dict(
-                        type="string",
-                        description="""
-                            Evaluate the entire conversation for unusual activity and categorize it as:
+        {
+            "name": "analyzer",
+            "description": "Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "analyzed": {
+                        "type": "string",
+                        "description": """Evaluate the entire conversation for unusual activity and categorize it as:
                             **Normal**: Conversation is in line with the overall subject and patterns.
-                            **Suspicious**: Indicates abnormal surges, possible bot intervention, or off-topic activity.
-                        """,
-                    )
-                ),
-                require=["grade"],
-            ),
-        ),
+                            **Suspicious**: Indicates abnormal surges, possible bot intervention, or off-topic activity.""",
+                    }
+                },
+                "required": ["analyzed"],
+            },
+        }
     ]
 
-    messages = [{"role": "user", "content": str_content}]
+    messages = [{"role": "user", "content": str_message}]
 
+    # Create the chat completion with function calling
     response = openai.chat.completions.create(
-        model="gpt-4o",
-        messages=messages,
-        response_format={"type": "json_object"},
-        # functions=functions, function_call={"name": "get_grade"}
+        model="gpt-4", messages=messages, functions=functions, function_call={"name": "analyzer"}
     )
 
-    return response
+    function_call = response.choices[0].message.function_call
+    if function_call and function_call.name == "analyzer":
+        arguments = json.loads(function_call.arguments)
+        return arguments.get("analyzed")
+    else:
+        return None
 
 
 def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk], None, None]:
@@ -123,7 +121,12 @@ def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk],
 def get_agent(name: str):
     config_list = {
         "gpt-4": dict(model="gpt-4", api_key=get_pass("OPENAI_API_KEY")),
-        "gemini-pro": dict(model="gemini-pro", api_type="google", api_key=get_pass("GEMINI_API_KEY")),
+        "gemini-pro": dict(
+            model="gemini-pro",
+            api_type="google",
+            api_key=get_pass("GEMINI_API_KEY"),
+            generation_config=dict(response_mime_type="application/json"),
+        ),
     }
     return ConversableAgent(
         "chatbot",
@@ -137,42 +140,36 @@ def get_agent(name: str):
 
 def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_chunk: list[MessageChunk]):
     prompt_template_path = pathlib.Path(config.root_dir / config.prompt.template)
-    prompt = prompt_template_path.read_text().replace("MESSAGES", yaml_dump(messages_chunk))
+    # prompt = prompt_template_path.read_text().replace("MESSAGES", yaml_dump(messages_chunk))
 
     log(log_file, "---")
-    log(log_file, f"date: {now}")
-    log(log_file, f"template: {prompt_template_path.stem}")
+    # log(log_file, f"date: {now}")
+    # log(log_file, f"template: {prompt_template_path.stem}")
     log(log_file, "messages:")
     log(log_file, f"  count: {len(messages_chunk)}")
     log(log_file, f"  from: {messages_chunk[0].date}")
     log(log_file, f"  to: {messages_chunk[-1].date}")
 
+    prompt = f"Messages:\n{indent(json_dump(messages_chunk, 2))}"
+    # print("!!!", prompt)
     response = ask_gpt(prompt)
-    log(log_file, "response:")
-    response_content = json_load(response.choices[0].message.content)
-    log(log_file, indent(yaml_dump([response_content]), 2))
+    # print("!!!", response)
+    log(log_file, f"response: {response}")
+    # log(log_file, "response:")
+    # response_content = json_load(response.choices[0].message.content)
+    # log(log_file, indent(yaml_dump([response_content]), 2))
 
     # agent = get_agent(args.agent)
     # reply = agent.generate_reply(
     #     messages=[
     #         {
-    #             "content": f"""
-    # Messages:
-    # {yaml_dump(messages_chunk)}
-    # """,
+    #             "content": prompt,
     #             "role": "user",
     #         }
     #     ]
     # )
-    #
-    # print("!!!", reply)
-
-    # response = reply["content"]
-    #
-    # re_yaml = re.compile(r"^\s*```(yaml)?\s*", re.MULTILINE)
-    # response = re_yaml.sub("", response)
-    # re_user_id = re.compile(r"\[(\d+)]", re.MULTILINE)
-    # response = re_user_id.sub(r"\1", response)
+    # content = reply["content"]
+    # response = yaml_dump([json_load(reply["content"])]) if content.startswith("{") else content
     #
     # log(log_file, f"response:\n{indent(response, 2)}")
 
