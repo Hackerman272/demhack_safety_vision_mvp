@@ -14,7 +14,7 @@ from pytimeparse.timeparse import timeparse
 
 from module.config import get_config
 from module.export import get_items, get_user
-from module.utils import get_pass, indent, json_dump, yaml_dump
+from module.utils import get_pass, indent, json_dump, json_load, yaml_dump
 
 signal(SIGPIPE, SIG_DFL)
 
@@ -81,9 +81,11 @@ def ask_gpt(str_content: str):
 
     messages = [{"role": "user", "content": str_content}]
 
-    # Create the chat completion with function calling
     response = openai.chat.completions.create(
-        model="gpt-4", messages=messages, functions=functions, function_call={"name": "get_grade"}
+        model="gpt-4o",
+        messages=messages,
+        response_format={"type": "json_object"},
+        # functions=functions, function_call={"name": "get_grade"}
     )
 
     return response
@@ -135,7 +137,7 @@ def get_agent(name: str):
 
 def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_chunk: list[MessageChunk]):
     prompt_template_path = pathlib.Path(config.root_dir / config.prompt.template)
-    # prompt = prompt_template_path.read_text().replace('"MESSAGES"', yaml_dump(messages_chunk))
+    prompt = prompt_template_path.read_text().replace("MESSAGES", yaml_dump(messages_chunk))
 
     log(log_file, "---")
     log(log_file, f"date: {now}")
@@ -145,19 +147,10 @@ def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_ch
     log(log_file, f"  from: {messages_chunk[0].date}")
     log(log_file, f"  to: {messages_chunk[-1].date}")
 
-    prompt = f"""
-Messages:
-{json_dump(messages_chunk, 2)}
-"""
-
-    # print("!!! prompt:", prompt)
     response = ask_gpt(prompt)
-    print("!!! response:", response)
-    function_call = response.choices[0].message.function_call
-    print("!!! function_call:", function_call)
-    if function_call and function_call.name == "get_grade":
-        arguments = json.loads(function_call.arguments)
-        print("!!!!! OUT:", arguments.get("label"))
+    log(log_file, "response:")
+    response_content = json_load(response.choices[0].message.content)
+    log(log_file, indent(yaml_dump([response_content]), 2))
 
     # agent = get_agent(args.agent)
     # reply = agent.generate_reply(

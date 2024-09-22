@@ -40,8 +40,7 @@ Evaluate the entire conversation for unusual activity and categorize it as:
 **Repetitive Messages**: Flag instances of similar or repeated messages with slight variations.
 **Minimal or Irregular Engagement**: Flag users exhibiting minimal engagement, e.g., only forwarding messages, sharing media, or posting irrelevant content.
 
-## Structure of Output in YAML format
-```yaml
+## Structure of Output in JSON format
 Conversation Analytics: # Provide an overall assessment of the conversation, including:
   Grade: Normal/Suspicious
   Reason: E.g., sudden surge in activity, repetitive messages, high link volume, etc.
@@ -52,28 +51,12 @@ Conversation Analytics: # Provide an overall assessment of the conversation, inc
   Surge Activity Detected: Yes/No
   Off-Topic Percentage: X%
 Suspicious Activity: List detected suspicious behaviors with examples (message IDs, content, usernames, IDs, and reasons for suspicion).
-```
 
 ## Input
-### Format example
-```yaml
----
-userID: 1111111
-text: Text example 1
-date: '2020-06-12 06:46:03'
----
-userID: 2222222
-text: Text example 2
-date: '2020-06-12 07:12:32'
-```
+### Chunk of messages in JSON format
+MESSAGES
 
-### Chunk of messages in YAML format
-```yaml
-"MESSAGES"
-```
-
-## Return the analysis in YAML format
-```yaml
+## Return the analysis in JSON format
 Conversation Analytics:
   Grade: Normal/Suspicious
   Reason: E.g., sudden surge in activity, repetitive messages, high link volume, etc.
@@ -86,10 +69,8 @@ Conversation Analytics:
 
 Suspicious Activity:
   [UserID]: Reason for suspicion (e.g., bot, spam, irrelevant message, hate speech, suspicious link, etc.).
-```
 
-## Output Example in YAML format
-```yaml
+## Output Example in JSON format
 Conversation Analytics:
   Grade: Suspicious
   Reason: Sudden surge in repetitive messages, several users sharing suspicious links.
@@ -106,4 +87,3 @@ Suspicious Activity of Users:
    [UserID]: Hate speech, aggressive comments toward a specific group.
    [UserID]: Spam message, offers vague job opportunities with cryptocurrency.
    [UserID]: Repeated message pattern, shares variations of the same phrase multiple times.
-```
