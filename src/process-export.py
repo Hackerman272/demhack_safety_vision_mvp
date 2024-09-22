@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import json
 import logging
 import pathlib
 import re
@@ -7,12 +8,13 @@ from dataclasses import dataclass
 from signal import SIG_DFL, SIGPIPE, signal
 from typing import Generator, TextIO
 
+import openai
 from autogen import ConversableAgent
 from pytimeparse.timeparse import timeparse
 
 from module.config import get_config
 from module.export import get_items, get_user
-from module.utils import get_pass, indent, yaml_dump
+from module.utils import get_pass, indent, json_dump, yaml_dump
 
 signal(SIGPIPE, SIG_DFL)
 
@@ -51,6 +53,42 @@ class MessageChunk:
     date: str
 
 
+def ask_gpt(str_content: str):
+    openai.api_key = get_pass("openai-api-key")
+    functions = [
+        dict(
+            name="get_grade",
+            description="""
+                ## Objective
+                Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).
+            """,
+            parameters=dict(
+                type="object",
+                properties=dict(
+                    grade=dict(
+                        type="string",
+                        description="""
+                            Evaluate the entire conversation for unusual activity and categorize it as:
+                            **Normal**: Conversation is in line with the overall subject and patterns.
+                            **Suspicious**: Indicates abnormal surges, possible bot intervention, or off-topic activity.
+                        """,
+                    )
+                ),
+                require=["grade"],
+            ),
+        ),
+    ]
+
+    messages = [{"role": "user", "content": str_content}]
+
+    # Create the chat completion with function calling
+    response = openai.chat.completions.create(
+        model="gpt-4", messages=messages, functions=functions, function_call={"name": "get_grade"}
+    )
+
+    return response
+
+
 def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk], None, None]:
     time_max = timeparse(config.prompt.messages.time_max)
     time_min = timeparse(config.prompt.messages.time_max)
@@ -83,22 +121,51 @@ def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk],
 def get_agent(name: str):
     config_list = {
         "gpt-4": dict(model="gpt-4", api_key=get_pass("openai-api-key")),
-        "gemini-pro": dict(model="gemini-pro", api_type="google", api_key=get_pass("gemini-api-key")),
+        "gemini-pro": dict(
+            model="gemini-pro",
+            api_type="google",
+            api_key=get_pass("gemini-api-key"),
+            functions=[
+                dict(
+                    name="get_grade",
+                    description="""
+                        ## Objective
+                        Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).
+                    """,
+                    parameters=dict(
+                        type="object",
+                        properties=dict(
+                            grade=dict(
+                                type="string",
+                                description="""
+                                    Evaluate the entire conversation for unusual activity and categorize it as:
+                                    **Normal**: Conversation is in line with the overall subject and patterns.
+                                    **Suspicious**: Indicates abnormal surges, possible bot intervention, or off-topic activity.
+                                """,
+                            )
+                        ),
+                        require=["grade"],
+                    ),
+                ),
+            ],
+            function_call={"name": "get_grade"},
+        ),
     }
-
     return ConversableAgent(
         "chatbot",
         llm_config={"config_list": [config_list[name]]},
-        # system_message=system_prompt,
+        # system_message="""
+        #     Analyze a set of Telegram messages to detect suspicious activity and assess the overall health of the conversation. Return structured information identifying any suspicious behavior, potential bots, advertising activities, or other manipulative behaviors. Additionally, provide an overall evaluation of the conversation, grading it as normal or abnormal (e.g., bot intervention or off-topic surges).
+        # """,
+        # function_map={"get_grade": "get_grade"},
         code_execution_config=False,
-        function_map=None,
         human_input_mode="NEVER",
     )
 
 
 def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_chunk: list[MessageChunk]):
     prompt_template_path = pathlib.Path(config.root_dir / config.prompt.template)
-    prompt = prompt_template_path.read_text().replace('"MESSAGES"', yaml_dump(messages_chunk))
+    # prompt = prompt_template_path.read_text().replace('"MESSAGES"', yaml_dump(messages_chunk))
 
     log(log_file, "---")
     log(log_file, f"date: {now}")
@@ -108,16 +175,43 @@ def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_ch
     log(log_file, f"  from: {messages_chunk[0].date}")
     log(log_file, f"  to: {messages_chunk[-1].date}")
 
-    agent = get_agent(args.agent)
-    reply = agent.generate_reply(messages=[{"content": prompt, "role": "user"}])
-    response = reply["content"]
+    prompt = f"""
+Messages:
+{json_dump(messages_chunk, 2)}
+"""
 
-    re_yaml = re.compile(r"^\s*```(yaml)?\s*", re.MULTILINE)
-    response = re_yaml.sub("", response)
-    re_user_id = re.compile(r"\[(\d+)]", re.MULTILINE)
-    response = re_user_id.sub(r"\1", response)
+    # print("!!! prompt:", prompt)
+    response = ask_gpt(prompt)
+    print("!!! response:", response)
+    function_call = response.choices[0].message.function_call
+    print("!!! function_call:", function_call)
+    if function_call and function_call.name == "get_grade":
+        arguments = json.loads(function_call.arguments)
+        print("!!!!! OUT:", arguments.get("label"))
 
-    log(log_file, f"response:\n{indent(response, 2)}")
+    # agent = get_agent(args.agent)
+    # reply = agent.generate_reply(
+    #     messages=[
+    #         {
+    #             "content": f"""
+    # Messages:
+    # {yaml_dump(messages_chunk)}
+    # """,
+    #             "role": "user",
+    #         }
+    #     ]
+    # )
+    #
+    # print("!!!", reply)
+
+    # response = reply["content"]
+    #
+    # re_yaml = re.compile(r"^\s*```(yaml)?\s*", re.MULTILINE)
+    # response = re_yaml.sub("", response)
+    # re_user_id = re.compile(r"\[(\d+)]", re.MULTILINE)
+    # response = re_user_id.sub(r"\1", response)
+    #
+    # log(log_file, f"response:\n{indent(response, 2)}")
 
 
 def process():
@@ -130,7 +224,7 @@ def process():
 
     for messages_chunk in get_messages_chunk(data_path):
         process_messages_chunk(now, log_file, messages_chunk)
-        break
+        # break
 
     print("saved_to: ", log_file_path)
 

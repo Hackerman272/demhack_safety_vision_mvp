@@ -38,8 +38,8 @@ def json_load(data: any):
     return json.loads(data)
 
 
-def json_dump(data: any):
-    return json.dumps(data, cls=EnhancedJSONEncoder, ensure_ascii=False)
+def json_dump(data: any, ident=None):
+    return json.dumps(data, cls=EnhancedJSONEncoder, ensure_ascii=False, indent=ident)
 
 
 def yaml_load(stream):

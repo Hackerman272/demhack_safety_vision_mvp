@@ -32,6 +32,10 @@ Evaluate the entire conversation for unusual activity and categorize it as:
 - Specifically consider messages like:
   - “Удаленная работа! От 350$ в неделю за пару часов в день! Только крипта!”
   - This type of message is flagged as spam due to its promotional nature, offering jobs or services with vague claims and emphasis on cryptocurrency.
+**Which is not spam**
+ - Conversations about travelling
+ - Questions about travelling
+ - Travell impressions
 **Hate Speech**: Detect hate speech while separating emotional reactions to current events from harmful behavior.
 **Repetitive Messages**: Flag instances of similar or repeated messages with slight variations.
 **Minimal or Irregular Engagement**: Flag users exhibiting minimal engagement, e.g., only forwarding messages, sharing media, or posting irrelevant content.
