@@ -1,3 +1,9 @@
 
 prompt:
-  max_message_length: 500
+  template: data/prompts/safety_vision_0.2.md
+  messages:
+    max_length: 500
+    count_min: 100
+    count_max: 250
+    time_min: 5m
+    time_max: 15m

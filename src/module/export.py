@@ -50,7 +50,7 @@ class PeerId(FromDict):
 @dataclass
 class ExportItem(FromDict):
     __fieldMap = {
-        "from": "from_",
+        "from": "user",
     }
     id: int
     date: datetime.datetime
@@ -59,7 +59,6 @@ class ExportItem(FromDict):
     actor: Optional[str] = None
     type: Optional[str] = None
     text: Optional[str] = None
-    from_: Optional[str] = None
     peer_id: Optional[PeerId] = None
 
     @classmethod
