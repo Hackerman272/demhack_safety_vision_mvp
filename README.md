@@ -4,13 +4,13 @@ uv sync
 ```
 
 ## Credentials
-Via [pass](https://www.passwordstore.org/)  
+From environments or [pass](https://www.passwordstore.org/) as a fallback.
 Keys:
-- `tg-api-id`
-- `tg-api-hash`
-- `openai-api-key`
-- `anthropic-api-key`
-- `gemini-api-key`
+- `TG_API_ID`
+- `TG_API_HASH`
+- `OPENAI_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `GEMINI_API_KEY`
 
 ## Export chat
 ```bash

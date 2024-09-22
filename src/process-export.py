@@ -54,7 +54,7 @@ class MessageChunk:
 
 
 def ask_gpt(str_content: str):
-    openai.api_key = get_pass("openai-api-key")
+    openai.api_key = get_pass("OPENAI_API_KEY")
     functions = [
         dict(
             name="get_grade",
@@ -120,8 +120,8 @@ def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk],
 
 def get_agent(name: str):
     config_list = {
-        "gpt-4": dict(model="gpt-4", api_key=get_pass("openai-api-key")),
-        "gemini-pro": dict(model="gemini-pro", api_type="google", api_key=get_pass("gemini-api-key")),
+        "gpt-4": dict(model="gpt-4", api_key=get_pass("OPENAI_API_KEY")),
+        "gemini-pro": dict(model="gemini-pro", api_type="google", api_key=get_pass("GEMINI_API_KEY")),
     }
     return ConversableAgent(
         "chatbot",

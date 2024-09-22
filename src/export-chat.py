@@ -17,8 +17,8 @@ args = argparser.parse_args()
 
 session_file = root_dir / "session"
 
-api_id = int(get_pass("tg-api-id"))
-api_hash = get_pass("tg-api-hash")
+api_id = int(get_pass("TG_API_ID"))
+api_hash = get_pass("TG_API_HASH")
 
 client = telethon.TelegramClient(session_file, api_id, api_hash)
 
