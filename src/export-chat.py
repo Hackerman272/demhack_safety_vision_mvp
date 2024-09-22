@@ -1,11 +1,21 @@
 import argparse
 import datetime
 import pathlib
+from signal import SIG_DFL, SIGINT, SIGPIPE, signal
 
 import telethon
 from asyncstdlib import enumerate
 
 from module.utils import get_pass, json_dump
+
+signal(SIGPIPE, SIG_DFL)
+
+
+def sigint_handler(*args):
+    exit(0)
+
+
+signal(SIGINT, sigint_handler)
 
 root_dir = pathlib.Path(__file__).parents[1]
 
@@ -36,7 +46,13 @@ async def export():
 
 
 async def main():
-    await export()
+    try:
+        await export()
+    # except KeyboardInterrupt:
+    #     print("STOP")
+    except Exception as e:
+        print("!!!")
+        # raise e
 
 
 with client:

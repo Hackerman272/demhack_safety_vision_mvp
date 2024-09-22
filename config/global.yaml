@@ -4,6 +4,6 @@ prompt:
   messages:
     max_length: 500
     count_min: 50
-    count_max: 80
+    count_max: 60
     time_min: 5m
     time_max: 15m

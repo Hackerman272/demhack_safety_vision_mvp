@@ -5,7 +5,7 @@ import logging
 import pathlib
 import re
 from dataclasses import dataclass
-from signal import SIG_DFL, SIGPIPE, signal
+from signal import SIG_DFL, SIGINT, SIGPIPE, signal
 from typing import Generator, TextIO
 
 import openai
@@ -17,6 +17,13 @@ from module.export import get_items, get_user
 from module.utils import get_pass, indent, json_dump, json_load, yaml_dump
 
 signal(SIGPIPE, SIG_DFL)
+
+
+def sigint_handler(*args):
+    exit(0)
+
+
+signal(SIGINT, sigint_handler)
 
 logging.getLogger("autogen.oai.client").setLevel(logging.ERROR)
 
@@ -190,8 +197,11 @@ def process_messages_chunk(now: datetime.datetime, log_file: TextIO, messages_ch
     log(log_file, f"  to: {messages_chunk[-1].date}")
 
     prompt = f"Messages:\n{indent(json_dump(messages_chunk, 2))}"
-    response = ask_gpt(prompt)
-    log(log_file, f"response:\n{indent(yaml_dump([response]), 2)}")
+    try:
+        response = ask_gpt(prompt)
+        log(log_file, f"response:\n{indent(yaml_dump([response]), 2)}")
+    except Exception:
+        log(log_file, "response: error")
 
 
 def process():
