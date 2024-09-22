@@ -70,28 +70,30 @@ Analyze a set of Telegram messages to detect suspicious activity, build user pro
     - Frequently: 6+ mentions.
 - Include usernames and IDs to provide clarity in the profile summary.
 
-## Structure of Output
-- Conversation Analytics: Provide an overall assessment of the conversation, including:
-  - Grade: Normal/Suspicious
-  - Reason: E.g., sudden surge in activity, repetitive messages, high link volume, etc.
-  - Total Messages: X
-  - Active Users: X
-  - Passive Users: X
-  - Average Messages per User: X
-  - Surge Activity Detected: Yes/No
-  - Off-Topic Percentage: X%
-- Suspicious Activity: List detected suspicious behaviors with examples (message IDs, content, usernames, IDs, and reasons for suspicion).
-- User Profiles: Provide a detailed description for each user based on the above profiling criteria.
+## Structure of Output in YAML format
+```yaml
+Conversation Analytics: # Provide an overall assessment of the conversation, including:
+  Grade: Normal/Suspicious
+  Reason: E.g., sudden surge in activity, repetitive messages, high link volume, etc.
+  Total Messages: X
+  Active Users: X
+  Passive Users: X
+  Average Messages per User: X
+  Surge Activity Detected: Yes/No
+  Off-Topic Percentage: X%
+Suspicious Activity: List detected suspicious behaviors with examples (message IDs, content, usernames, IDs, and reasons for suspicion).
+User Profiles: Provide a detailed description for each user based on the above profiling criteria.
+```
 
 ## Input
 ### Format example
 ```yaml
 ---
-user: 1111111
+userID: 1111111
 text: Text example 1
 date: '2020-06-12 06:46:03'
 ---
-user: 2222222
+userID: 2222222
 text: Text example 2
 date: '2020-06-12 07:12:32'
 ```
@@ -114,10 +116,10 @@ Conversation Analytics:
   Off-Topic Percentage: X%
 
 Suspicious Activity:
-  UserID: Reason for suspicion (e.g., bot, spam, irrelevant message, hate speech, suspicious link, etc.).
+  [UserID]: Reason for suspicion (e.g., bot, spam, irrelevant message, hate speech, suspicious link, etc.).
 
 User Profiles:
-  UserID: 
+  [UserID]: 
     Number of Messages: X/day, X/month (Low/Average/High activity)
     Message Frequency: X/day (Low/Average/High)
     Message Tone: {Positive: X, Neutral: X, Negative: X}
@@ -140,15 +142,15 @@ Conversation Analytics:
   Surge Activity Detected: Yes
   Off-Topic Percentage: 15%
 
-Suspicious Activity:
-   - example_user_1: Possible advertising, mentions legal alcohol delivery services in a promotional tone.
-   - example_user_2: Bot-like behavior, repetitive irrelevant media sharing without context.
-   - example_user_3: Hate speech, aggressive comments toward a specific group.
-   - example_user_4: Spam message, offers vague job opportunities with cryptocurrency.
-   - example_user_5: Repeated message pattern, shares variations of the same phrase multiple times.
+Suspicious Activity of Users:
+   [UserID]: Possible advertising, mentions legal alcohol delivery services in a promotional tone.
+   [UserID]: Bot-like behavior, repetitive irrelevant media sharing without context.
+   [UserID]: Hate speech, aggressive comments toward a specific group.
+   [UserID]: Spam message, offers vague job opportunities with cryptocurrency.
+   [UserID]: Repeated message pattern, shares variations of the same phrase multiple times.
 
 User Profiles:
-  example_user_1:
+  [UserID]:
     Number of Messages: 5/day, 150/month (Low activity)
     Message Frequency: 0.3/day (Low)
     Message Tone: {Positive: 7, Neutral: 2, Negative: 1}
@@ -157,7 +159,7 @@ User Profiles:
     Engagement in Dialogue: Low
     Average Questions per Message: 0.1 (Low initiative)
     Mentions of Others: Rarely (1 mention)
-  example_user_2:
+  [UserID]:
     Number of Messages: 20/day, 600/month (Average activity)
     Message Frequency: 2/day (Average)
     Message Tone: {Positive: 4, Neutral: 5, Negative: 1}

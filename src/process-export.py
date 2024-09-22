@@ -45,7 +45,7 @@ def filter_items(items):
 
 @dataclass
 class MessageChunk:
-    user: str
+    userID: str
     text: str
     date: str
 
@@ -61,7 +61,7 @@ def get_messages_chunk(data_path: pathlib.Path) -> Generator[list[MessageChunk],
         start_time = start_time or item.date
         chunk.append(
             MessageChunk(
-                user=get_user(item),
+                userID=get_user(item),
                 text=item.message,
                 date=item.date.strftime("%Y-%m-%d %H:%M:%S"),
             )
